@@ -1,0 +1,38 @@
+
+# Credenciais
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Backups e bancos locais
+*.dump
+*.backup
+*.bak
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Banco de dados fornecido pelo hackathon
+db/
+
+# Configuracoes locais do pgAdmin
+pgadmin/servers.json
+
+# Consultas SQL utilizadas nos testes
+consultas.sql
