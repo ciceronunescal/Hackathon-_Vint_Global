@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InHire | Busca de Profissionais</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f5f9;
+            color: #172033;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 28px 8%;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        header p {
+            margin-bottom: 0;
+            color: #cbd5e1;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .painel {
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px #0000000d;
+            margin-bottom: 24px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 110px;
+            padding: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font: inherit;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 16px;
+            padding: 13px 26px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .colaborador {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .colaborador h3 {
+            margin: 0 0 10px;
+        }
+
+        .info {
+            color: #64748b;
+            margin: 6px 0;
+        }
+
+        .meses {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .mes {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 12px;
+            min-width: 130px;
+        }
+
+        .mes strong {
+            display: block;
+            margin: 6px 0;
+        }
+
+        .aviso {
+            color: #92400e;
+            font-size: 12px;
+        }
+
+        #mensagem {
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>InHire</h1>
+        <p>Encontre profissionais utilizando linguagem natural.</p>
+    </header>
+
+    <main>
+        <section class="painel">
+            <h2>Encontre o profissional ideal</h2>
+
+            <textarea
+                id="consulta"
+                placeholder="Ex.: Quero 2 Analistas de Sistemas Júniores com Python e Django, 50% de disponibilidade a partir de 11/2026 por 3 meses"
+            ></textarea>
+
+            <button id="buscar" onclick="buscarProfissionais()">
+                Buscar profissionais
+            </button>
+
+            <div id="mensagem" role="status"></div>
+        </section>
+
+        <section id="resultados" aria-live="polite"></section>
+    </main>
+
+    <script>
+        function criarElemento(tag, texto, classe) {
+            const elemento = document.createElement(tag);
+
+            if (texto !== undefined) {
+                elemento.textContent = texto;
+            }
+
+            if (classe) {
+                elemento.className = classe;
+            }
+
+            return elemento;
+        }
+
+        async function buscarProfissionais() {
+            const texto = document.getElementById("consulta").value.trim();
+            const botao = document.getElementById("buscar");
+            const mensagem = document.getElementById("mensagem");
+            const resultados = document.getElementById("resultados");
+
+            if (!texto) {
+                mensagem.textContent = "Digite uma solicitação.";
+                return;
+            }
+
+            botao.disabled = true;
+            mensagem.textContent = "Buscando profissionais...";
+            resultados.replaceChildren();
+
+            try {
+                const resposta = await fetch("/buscar", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ texto })
+                });
+
+                const dados = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        typeof dados.detail === "string"
+                            ? dados.detail
+                            : "Erro ao executar a busca."
+                    );
+                }
+
+                mensagem.textContent =
+                    `${dados.total_encontrado} profissional(is) elegível(is).`;
+
+                if (!dados.colaboradores.length) {
+                    resultados.appendChild(
+                        criarElemento("p", "Nenhum profissional encontrado.")
+                    );
+                    return;
+                }
+
+                dados.colaboradores.forEach((colaborador, indice) => {
+                    const card = criarElemento("article", undefined, "colaborador");
+
+                    card.appendChild(
+                        criarElemento("h3", `${indice + 1}º - ${colaborador.nome}`)
+                    );
+
+                    card.appendChild(
+                        criarElemento(
+                            "p",
+                            `${colaborador.cargo} | ${colaborador.senioridade}`,
+                            "info"
+                        )
+                    );
+
+                    const competencias = Object.entries(colaborador.niveis)
+                        .map(([skill, nivel]) => {
+                            const niveis = {
+                                1: "Básico",
+                                2: "Intermediário",
+                                3: "Avançado"
+                            };
+
+                            return `${skill}: ${niveis[nivel] || "Não informado"}`;
+                        })
+                        .join(" | ");
+
+                    card.appendChild(
+                        criarElemento("p", competencias, "info")
+                    );
+
+                    card.appendChild(
+                        criarElemento(
+                            "p",
+                            `Experiência registrada: ${colaborador.experiencia_meses} meses`,
+                            "info"
+                        )
+                    );
+
+                    const meses = criarElemento("div", undefined, "meses");
+
+                    colaborador.disponibilidade.forEach((mes) => {
+                        const caixa = criarElemento("div", undefined, "mes");
+
+                        caixa.appendChild(
+                            criarElemento("span", `${mes.mes}/${mes.ano}`)
+                        );
+
+                        caixa.appendChild(
+                            criarElemento(
+                                "strong",
+                                `${mes.disponibilidade}% livre`
+                            )
+                        );
+
+                        if (!mes.possui_planejamento) {
+                            caixa.appendChild(
+                                criarElemento(
+                                    "span",
+                                    "Sem planejamento registrado",
+                                    "aviso"
+                                )
+                            );
+                        }
+
+                        meses.appendChild(caixa);
+                    });
+
+                    card.appendChild(meses);
+                    resultados.appendChild(card);
+                });
+
+            } catch (erro) {
+                mensagem.textContent = erro.message;
+            } finally {
+                botao.disabled = false;
+            }
+        }
+    </script>
+
+</body>
+</html>
