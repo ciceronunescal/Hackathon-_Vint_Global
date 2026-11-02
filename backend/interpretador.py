@@ -165,7 +165,7 @@ def interpretar_solicitacao(texto):
                 )
             )
 
-    
+
     quantidade_solicitada = re.search(
     r"\b(?:quero|preciso de|busco|encontre|selecione)\s+"
     r"(\d+)\s+"
@@ -181,7 +181,7 @@ def interpretar_solicitacao(texto):
         if quantidade_solicitada
         else 1
     )
-    
+
     senioridades = {
         "trainee": "Trainee",
         "junior": "Júnior",
@@ -198,8 +198,8 @@ def interpretar_solicitacao(texto):
             senioridade = descricao
             break
 
-    
-    
+
+
     cargo = None
 
     cargos = sorted(
