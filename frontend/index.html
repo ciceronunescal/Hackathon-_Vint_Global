@@ -4,152 +4,973 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InHire | Busca de Profissionais</title>
+    <title>InHire | Busca Inteligente de Profissionais</title>
 
     <style>
+        :root {
+            --roxo: #842be3;
+            --roxo-hover: #7020c8;
+            --roxo-escuro: #25143d;
+            --violeta: #a175e9;
+            --ciano: #00d8e5;
+            --lilas: #ede4fa;
+            --fundo: #f7f3fc;
+            --branco: #ffffff;
+            --texto: #2c203e;
+            --secundario: #796e87;
+            --borda: #e7ddf2;
+            --sombra: 0 10px 32px rgba(65, 25, 112, 0.07);
+        }
+
         * {
             box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f3f5f9;
-            color: #172033;
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--fundo);
+            color: var(--texto);
         }
 
+        /* CABECALHO */
+
         header {
-            background: #172554;
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(
+                    ellipse at 85% 15%,
+                    rgba(0, 216, 229, 0.23),
+                    transparent 42%
+                ),
+                linear-gradient(
+                    115deg,
+                    #25143d 0%,
+                    #572091 60%,
+                    #842be3 100%
+                );
             color: white;
-            padding: 28px 8%;
+            padding: 28px max(24px, calc((100% - 1120px) / 2));
+            border-bottom: 4px solid var(--ciano);
+        }
+
+        header::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: 10%;
+            top: -170px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .cabecalho {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .marca-icone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--ciano);
+            font-size: 23px;
+            font-weight: 800;
         }
 
         header h1 {
             margin: 0;
-            font-size: 30px;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        header h1::after {
+            content: ".";
+            color: var(--ciano);
         }
 
         header p {
-            margin-bottom: 0;
-            color: #cbd5e1;
+            margin: 6px 0 0;
+            font-size: 13px;
+            color: #e6d8f8;
         }
 
+        .cabecalho form {
+            margin: 0;
+        }
+
+        /* BOTOES */
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            transition:
+                background 0.2s,
+                transform 0.2s,
+                box-shadow 0.2s;
+        }
+
+        button:focus-visible {
+            outline: 3px solid var(--ciano);
+            outline-offset: 3px;
+        }
+
+        .botao-sair {
+            padding: 11px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            border-radius: 9px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .botao-sair:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .botao-buscar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            margin-top: 0;
+            padding: 14px 26px;
+            background: var(--roxo);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(132, 43, 227, 0.2);
+        }
+
+        .botao-buscar:hover {
+            background: var(--roxo-hover);
+            transform: translateY(-1px);
+        }
+
+        .botao-buscar:disabled {
+            opacity: 0.6;
+            cursor: wait;
+            transform: none;
+        }
+
+        /* CONTEUDO */
+
         main {
-            max-width: 1100px;
-            margin: 40px auto;
+            width: 100%;
+            max-width: 1120px;
+            margin: 35px auto 65px;
             padding: 0 20px;
         }
 
+        .intro {
+            margin-bottom: 26px;
+        }
+
+        .etiqueta {
+            display: inline-block;
+            padding: 7px 13px;
+            background: var(--lilas);
+            color: var(--roxo);
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .intro h2 {
+            margin: 14px 0 8px;
+            font-size: 28px;
+            color: var(--roxo-escuro);
+            letter-spacing: -0.7px;
+        }
+
+        .intro p {
+            margin: 0;
+            color: var(--secundario);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
         .painel {
-            background: white;
-            padding: 28px;
-            border-radius: 14px;
-            box-shadow: 0 4px 18px #0000000d;
-            margin-bottom: 24px;
+            padding: 30px;
+            background: var(--branco);
+            border: 1px solid var(--borda);
+            border-radius: 17px;
+            box-shadow: var(--sombra);
+            margin-bottom: 28px;
+        }
+
+        .painel-titulo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .icone-painel {
+            width: 41px;
+            height: 41px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--lilas);
+            border-radius: 11px;
+            color: var(--roxo);
+            font-size: 21px;
+        }
+
+        .painel h3 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--roxo-escuro);
+        }
+
+        .painel-subtitulo {
+            margin: 4px 0 0;
+            color: var(--secundario);
+            font-size: 12px;
         }
 
         textarea {
             width: 100%;
-            min-height: 110px;
-            padding: 15px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
+            min-height: 115px;
+            padding: 17px;
+            border: 1px solid #dccdec;
+            border-radius: 11px;
+            background: #fdfbff;
+            color: var(--texto);
             font: inherit;
+            font-size: 14px;
+            line-height: 1.6;
             resize: vertical;
+            outline: none;
+            transition:
+                border-color 0.2s,
+                box-shadow 0.2s;
         }
 
-        button {
+        textarea::placeholder {
+            color: #a59ab1;
+        }
+
+        textarea:focus {
+            border-color: var(--roxo);
+            box-shadow: 0 0 0 4px rgba(132, 43, 227, 0.1);
+        }
+
+        .barra-acoes {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .dica {
+            font-size: 12px;
+            color: var(--secundario);
+            margin-top: 17px;
+        }
+
+        #mensagem {
             margin-top: 16px;
-            padding: 13px 26px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--roxo);
         }
 
-        button:hover {
-            background: #1d4ed8;
+        #mensagem:empty {
+            display: none;
         }
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: wait;
+        /* SUGESTAO OPCIONAL DE IA */
+
+        .botao-ia {
+            border: 1px solid #bfa0e4;
+            border-radius: 10px;
+            background: #f6efff;
+            color: #6520ab;
+            padding: 13px 17px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .botao-ia:hover { background: #eadcfb; }
+        .botao-ia:disabled { opacity: .6; cursor: wait; }
+
+        .acoes-pesquisa {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sugestao-ia {
+            margin-top: 18px;
+            padding: 18px;
+            border: 1px solid #d9c7f0;
+            border-radius: 12px;
+            background: #faf7ff;
+        }
+
+        .sugestao-ia[hidden] { display: none; }
+        .sugestao-ia h4 { margin: 0 0 10px; color: var(--roxo-escuro); }
+        .sugestao-ia p { margin: 0 0 14px; line-height: 1.6; overflow-wrap: anywhere; }
+        .sugestao-ia .acoes-pesquisa button { margin: 0; }
+        .botao-descartar {
+            border: 1px solid #d9c7f0;
+            background: white;
+            border-radius: 9px;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--texto);
+        }
+
+        /* CRITERIOS REALMENTE APLICADOS */
+        .criterios-pesquisa {
+            background: #ffffff;
+            border: 1px solid var(--borda);
+            border-left: 4px solid var(--roxo);
+            border-radius: 12px;
+            padding: 17px 20px;
+            margin-bottom: 22px;
+            box-shadow: var(--sombra);
+        }
+        .criterios-titulo {
+            margin: 0 0 10px;
+            color: var(--roxo-escuro);
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .criterios-linhas { display: flex; gap: 10px 26px; flex-wrap: wrap; }
+        .criterio { font-size: 13px; line-height: 1.6; }
+        .criterio strong { color: var(--roxo-escuro); }
+        .criterios-nota { margin: 9px 0 0; font-size: 12px; color: var(--secundario); }
+
+        /* RESULTADOS */
+
+        .resultados-cabecalho {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .resultados-cabecalho h2 {
+            margin: 0;
+            font-size: 21px;
+            color: var(--roxo-escuro);
+        }
+
+        .resultado-contagem {
+            background: var(--lilas);
+            color: var(--roxo);
+            padding: 7px 13px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         .colaborador {
+            position: relative;
             background: white;
-            padding: 24px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            border: 1px solid #e2e8f0;
+            padding: 25px 27px;
+            border-radius: 15px;
+            border: 1px solid var(--borda);
+            box-shadow: var(--sombra);
+            margin-bottom: 17px;
+            overflow: hidden;
+            transition:
+                box-shadow 0.2s,
+                transform 0.2s;
+        }
+
+        .colaborador::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(
+                180deg,
+                var(--roxo),
+                var(--ciano)
+            );
+        }
+
+        .colaborador:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 34px rgba(65, 25, 112, 0.11);
+        }
+
+        .colaborador-topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .colaborador-identidade {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .posicao {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            background: var(--lilas);
+            color: var(--roxo);
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 800;
         }
 
         .colaborador h3 {
-            margin: 0 0 10px;
+            margin: 0 0 4px;
+            font-size: 18px;
+            color: var(--roxo-escuro);
         }
 
-        .info {
-            color: #64748b;
-            margin: 6px 0;
+        .cargo {
+            color: var(--secundario);
+            font-size: 13px;
+            margin: 0;
         }
+
+        .senioridade {
+            padding: 7px 13px;
+            background: var(--lilas);
+            color: var(--roxo);
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .secao-card {
+            margin-top: 18px;
+        }
+
+        .secao-titulo {
+            font-size: 11px;
+            color: var(--secundario);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            margin: 0 0 11px;
+        }
+
+        .competencias {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .competencia {
+            background: #f2eafb;
+            border: 1px solid #e9dafa;
+            color: #7020c8;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .experiencia {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 18px;
+            padding: 10px 13px;
+            background: #f8f5fc;
+            border-radius: 9px;
+            color: var(--texto);
+            font-size: 13px;
+        }
+
+        .experiencia strong {
+            color: var(--roxo);
+        }
+
+        .divisor {
+            height: 1px;
+            background: var(--borda);
+            margin: 22px 0 17px;
+        }
+
+        /* DISPONIBILIDADE */
 
         .meses {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 16px;
+            margin-top: 12px;
         }
 
         .mes {
-            background: #f1f5f9;
-            border-radius: 8px;
-            padding: 12px;
-            min-width: 130px;
+            background: #faf7fe;
+            border: 1px solid var(--borda);
+            border-radius: 11px;
+            padding: 15px;
+        }
+
+        .mes-periodo {
+            display: block;
+            color: var(--secundario);
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .mes strong {
             display: block;
-            margin: 6px 0;
+            color: var(--roxo);
+            font-size: 21px;
+            margin: 9px 0 4px;
+        }
+
+        .mes-livre {
+            font-size: 12px;
+            color: var(--secundario);
         }
 
         .aviso {
-            color: #92400e;
-            font-size: 12px;
+            display: block;
+            margin-top: 11px;
+            padding-top: 9px;
+            border-top: 1px solid #e9dff2;
+            font-size: 11px;
+            color: #a06e32;
+            line-height: 1.5;
         }
 
-        #mensagem {
+        .planejamento-ok {
+            display: block;
+            margin-top: 11px;
+            padding-top: 9px;
+            border-top: 1px solid #e9dff2;
+            font-size: 11px;
+            color: #387d65;
+        }
+
+        .mes-nao-confirmado {
+            border-color: #e8d5a9;
+            background: #fffdf8;
+        }
+
+        .mes-nao-confirmado strong {
+            color: #a06e32;
+        }
+
+        .mes-confirmado strong {
+            color: var(--roxo);
+        }
+
+        .aviso-vigencia {
+            display: block;
+            margin-top: 11px;
+            padding-top: 9px;
+            border-top: 1px solid #e9dff2;
+            font-size: 11px;
+            color: var(--secundario);
+            line-height: 1.5;
+        }
+
+        .talento-origem {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 30px;
+            background: #e8f9fa;
+            color: #087b83;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .talento-nota {
             margin: 15px 0;
+            padding: 13px 15px;
+            border: 1px solid #e3d4ef;
+            background: white;
+            border-radius: 10px;
+            color: var(--secundario);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .talento-disponibilidade {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #f8f5fc;
+            font-size: 13px;
+        }
+
+        .talento-disponibilidade strong {
+            color: var(--roxo);
+        }
+
+        .sem-resultados {
+            padding: 27px;
+            text-align: center;
+            border: 1px dashed #d3bbed;
+            border-radius: 14px;
+            background: white;
+            color: var(--secundario);
+        }
+
+        /* RODAPE */
+
+        footer {
+            padding: 22px;
+            background: #281640;
+            color: #d8c7eb;
+            text-align: center;
+            font-size: 12px;
+            border-top: 3px solid var(--ciano);
+        }
+
+        footer strong {
+            color: white;
+        }
+
+        /* COMO FUNCIONA — TRES PASSOS */
+
+        .como-funciona {
+            margin: 8px 0 36px;
+            padding: 8px 2px 12px;
+        }
+
+        .como-funciona-cabecalho {
+            margin-bottom: 27px;
+        }
+
+        .como-funciona-cabecalho .etiqueta {
+            background: transparent;
+            padding: 0;
+            color: var(--roxo);
+        }
+
+        .como-funciona-cabecalho h2 {
+            margin: 9px 0 0;
+            color: var(--roxo-escuro);
+            font-size: 23px;
+            font-weight: 750;
+            letter-spacing: -0.6px;
+        }
+
+        .passos {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 30px;
+        }
+
+        .passo {
+            position: relative;
+            min-width: 0;
+            padding-top: 16px;
+            border-top: 1px solid #d9cae9;
+        }
+
+        .passo::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: 0;
+            width: 44px;
+            height: 3px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--roxo), var(--ciano));
+        }
+
+        .passo-numero {
+            display: block;
+            margin-bottom: 12px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 37px;
+            line-height: 1.1;
+            color: var(--roxo);
+        }
+
+        .passo h3 {
+            margin: 0 0 9px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--roxo-escuro);
+        }
+
+        .passo p {
+            max-width: 310px;
+            margin: 0;
+            color: var(--secundario);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        @media (max-width: 600px) {
+            .como-funciona { margin: 0 0 30px; }
+            .passos { grid-template-columns: 1fr; gap: 22px; }
+            .passo { padding-top: 14px; }
+            .passo-numero { font-size: 32px; margin-bottom: 7px; }
+        }
+
+        /* RESPONSIVIDADE */
+
+        @media (max-width: 768px) {
+            .meses {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .painel {
+                padding: 23px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 23px 20px;
+            }
+
+            .cabecalho {
+                align-items: flex-start;
+            }
+
+            .marca-icone {
+                display: none;
+            }
+
+            header h1 {
+                font-size: 27px;
+            }
+
+            header p {
+                font-size: 12px;
+            }
+
+            .botao-sair {
+                padding: 9px 13px;
+            }
+
+            main {
+                padding: 0 15px;
+                margin-top: 25px;
+            }
+
+            .intro h2 {
+                font-size: 23px;
+            }
+
+            .painel,
+            .colaborador {
+                padding: 20px;
+            }
+
+            .meses {
+                grid-template-columns: 1fr;
+            }
+
+            .barra-acoes {
+                align-items: stretch;
+            }
+
+            .botao-buscar {
+                width: 100%;
+            }
+
+            .colaborador-topo {
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
 
 <body>
 
+    <!-- CABECALHO -->
+
     <header>
-        <h1>InHire</h1>
-        <p>Encontre profissionais utilizando linguagem natural.</p>
+        <div class="cabecalho">
+            <div class="marca">
+                <div class="marca-icone">✦</div>
+
+                <div>
+                    <h1>InHire</h1>
+                    <p>
+                        Inteligência para conectar talentos
+                        e oportunidades.
+                    </p>
+                </div>
+            </div>
+
+            <form method="POST" action="/logout">
+                <button type="submit" class="botao-sair">
+                    Sair
+                </button>
+            </form>
+        </div>
     </header>
 
+    <!-- CONTEUDO PRINCIPAL -->
+
     <main>
+        <section class="intro">
+            <span class="etiqueta">
+                Busca inteligente de profissionais
+            </span>
+
+            <h2>Encontre o talento ideal</h2>
+
+            <p>
+                Descreva suas necessidades e encontre
+                profissionais de acordo com competências,
+                senioridade e disponibilidade.
+            </p>
+        </section>
+
+        <!-- PAINEL DE BUSCA -->
+
         <section class="painel">
-            <h2>Encontre o profissional ideal</h2>
+            <div class="painel-titulo">
+                <div class="icone-painel">✦</div>
+
+                <div>
+                    <h3>O que você procura?</h3>
+                    <p class="painel-subtitulo">
+                        Faça sua solicitação utilizando linguagem natural.
+                    </p>
+                </div>
+            </div>
 
             <textarea
                 id="consulta"
+                aria-label="Descreva o profissional procurado"
                 placeholder="Ex.: Quero 2 Analistas de Sistemas Júniores com Python e Django, 50% de disponibilidade a partir de 11/2026 por 3 meses"
             ></textarea>
 
-            <button id="buscar" onclick="buscarProfissionais()">
-                Buscar profissionais
-            </button>
+            <div class="barra-acoes">
+                <div class="acoes-pesquisa">
+                    <button
+                        id="buscar"
+                        type="button"
+                        class="botao-buscar"
+                        onclick="buscarProfissionais()"
+                    >
+                        ✦ Buscar profissionais
+                    </button>
+                    <button
+                        id="melhorar-ia"
+                        type="button"
+                        class="botao-ia"
+                        onclick="melhorarPesquisaIA()"
+                    >
+                        ✧ Melhorar minha pesquisa com IA
+                    </button>
+                </div>
+
+                <span class="dica">
+                    Informe cargo, competências, período
+                    e disponibilidade.
+                </span>
+            </div>
 
             <div id="mensagem" role="status"></div>
+            <div id="sugestao-ia" class="sugestao-ia" hidden>
+                <h4>Sugestão da IA — revise antes de utilizar</h4>
+                <p id="sugestao-ia-texto"></p>
+                <div class="acoes-pesquisa">
+                    <button class="botao-buscar" type="button" onclick="aceitarSugestaoIA()">
+                        Usar esta sugestão
+                    </button>
+                    <button class="botao-descartar" type="button" onclick="descartarSugestaoIA()">
+                        Descartar
+                    </button>
+                </div>
+            </div>
         </section>
+
+        <!-- COMO FUNCIONA -->
+
+        <section class="como-funciona" aria-labelledby="como-funciona-titulo">
+            <div class="como-funciona-cabecalho">
+                <span class="etiqueta">Simples e inteligente</span>
+                <h2 id="como-funciona-titulo">Como o InHire funciona</h2>
+            </div>
+
+            <div class="passos">
+                <article class="passo">
+                    <span class="passo-numero" aria-hidden="true">01</span>
+                    <h3>Descreva sua necessidade</h3>
+                    <p>
+                        Informe cargo, competências, período e disponibilidade
+                        em linguagem natural. Se quiser, use a IA para melhorar o texto.
+                    </p>
+                </article>
+
+                <article class="passo">
+                    <span class="passo-numero" aria-hidden="true">02</span>
+                    <h3>O InHire analisa</h3>
+                    <p>
+                        O sistema interpreta os requisitos, cruza as competências
+                        e verifica a disponibilidade dos profissionais em cada mês.
+                    </p>
+                </article>
+
+                <article class="passo">
+                    <span class="passo-numero" aria-hidden="true">03</span>
+                    <h3>Explore os resultados</h3>
+                    <p>
+                        Veja os profissionais internos elegíveis. Quando nenhum atende
+                        aos critérios, consulte as alternativas do Banco de Talentos.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <!-- RESULTADOS -->
 
         <section id="resultados" aria-live="polite"></section>
     </main>
+
+    <!-- RODAPE -->
+
+    <footer>
+        <strong>InHire</strong>
+        — Busca Inteligente de Profissionais
+        <div style="margin-top: 5px;">
+            Projeto desenvolvido para o Hackathon Vint Global
+        </div>
+    </footer>
 
     <script>
         function criarElemento(tag, texto, classe) {
@@ -166,14 +987,392 @@
             return elemento;
         }
 
-        async function buscarProfissionais() {
+        function formatarNivel(nivel) {
+            const niveis = {
+                1: "Básico",
+                2: "Intermediário",
+                3: "Avançado"
+            };
+
+            return niveis[nivel] || "Não informado";
+        }
+
+        function criarCardColaborador(colaborador, indice) {
+            const card = criarElemento(
+                "article",
+                undefined,
+                "colaborador"
+            );
+
+            // CABECALHO DO COLABORADOR
+
+            const topo = criarElemento(
+                "div",
+                undefined,
+                "colaborador-topo"
+            );
+
+            const identidade = criarElemento(
+                "div",
+                undefined,
+                "colaborador-identidade"
+            );
+
+            identidade.appendChild(
+                criarElemento(
+                    "div",
+                    `${indice + 1}º`,
+                    "posicao"
+                )
+            );
+
+            const dados = criarElemento("div");
+
+            dados.appendChild(
+                criarElemento(
+                    "h3",
+                    colaborador.nome
+                )
+            );
+
+            dados.appendChild(
+                criarElemento(
+                    "p",
+                    colaborador.cargo || "Cargo não informado",
+                    "cargo"
+                )
+            );
+
+            identidade.appendChild(dados);
+            topo.appendChild(identidade);
+
+            topo.appendChild(
+                criarElemento(
+                    "span",
+                    colaborador.senioridade || "Não informado",
+                    "senioridade"
+                )
+            );
+
+            card.appendChild(topo);
+
+            // COMPETENCIAS
+
+            const secaoCompetencias = criarElemento(
+                "div",
+                undefined,
+                "secao-card"
+            );
+
+            secaoCompetencias.appendChild(
+                criarElemento(
+                    "p",
+                    "Competências técnicas",
+                    "secao-titulo"
+                )
+            );
+
+            const competencias = criarElemento(
+                "div",
+                undefined,
+                "competencias"
+            );
+
+            Object.entries(colaborador.niveis || {})
+                .forEach(([skill, nivel]) => {
+                    competencias.appendChild(
+                        criarElemento(
+                            "span",
+                            `${skill} · ${formatarNivel(nivel)}`,
+                            "competencia"
+                        )
+                    );
+                });
+
+            secaoCompetencias.appendChild(competencias);
+            card.appendChild(secaoCompetencias);
+
+            // EXPERIENCIA
+
+            const experiencia = criarElemento(
+                "div",
+                undefined,
+                "experiencia"
+            );
+
+            experiencia.appendChild(
+                criarElemento(
+                    "span",
+                    "Experiência registrada:"
+                )
+            );
+
+            experiencia.appendChild(
+                criarElemento(
+                    "strong",
+                    `${colaborador.experiencia_meses} meses`
+                )
+            );
+
+            card.appendChild(experiencia);
+
+            // DISPONIBILIDADE
+
+            card.appendChild(
+                criarElemento("div", undefined, "divisor")
+            );
+
+            card.appendChild(
+                criarElemento(
+                    "p",
+                    "Disponibilidade por mês",
+                    "secao-titulo"
+                )
+            );
+
+            const meses = criarElemento(
+                "div",
+                undefined,
+                "meses"
+            );
+
+            (colaborador.disponibilidade || [])
+                .forEach((mes) => {
+                    const caixa = criarElemento(
+                        "div",
+                        undefined,
+                        mes.possui_planejamento ? "mes mes-confirmado" : "mes mes-nao-confirmado"
+                    );
+
+                    caixa.appendChild(
+                        criarElemento(
+                            "span",
+                            `${mes.mes}/${mes.ano}`,
+                            "mes-periodo"
+                        )
+                    );
+
+                    caixa.appendChild(
+                        criarElemento(
+                            "strong",
+                            `${mes.disponibilidade}%`
+                        )
+                    );
+
+                    caixa.appendChild(
+                        criarElemento(
+                            "span",
+                            mes.possui_planejamento
+                                ? "Disponibilidade planejada"
+                                : "Disponibilidade calculada",
+                            "mes-livre"
+                        )
+                    );
+
+                    if (!mes.possui_planejamento) {
+                        caixa.appendChild(
+                            criarElemento(
+                                "span",
+                                "Disponibilidade não confirmada — sem planejamento registrado",
+                                "aviso"
+                            )
+                        );
+                    } else {
+                        caixa.appendChild(
+                            criarElemento(
+                                "span",
+                                "Planejamento registrado",
+                                "planejamento-ok"
+                            )
+                        );
+                    }
+                    if (mes.aviso_vigencia) {
+                        caixa.appendChild(
+                            criarElemento(
+                                "span",
+                                mes.aviso_vigencia,
+                                "aviso-vigencia"
+                            )
+                        );
+                    }
+                    meses.appendChild(caixa);
+                });
+
+            card.appendChild(meses);
+
+            return card;
+        }
+
+        function criarCardTalento(talento, indice) {
+            const card = criarElemento("article", undefined, "colaborador");
+            const topo = criarElemento("div", undefined, "colaborador-topo");
+            const identidade = criarElemento("div", undefined, "colaborador-identidade");
+
+            identidade.appendChild(criarElemento("div", `${indice + 1}º`, "posicao"));
+            const dados = criarElemento("div");
+            dados.appendChild(criarElemento("h3", talento.nome));
+            dados.appendChild(criarElemento(
+                "p", talento.cargo || "Cargo não informado", "cargo"
+            ));
+            identidade.appendChild(dados);
+            topo.appendChild(identidade);
+            topo.appendChild(criarElemento("span", "Banco de Talentos", "talento-origem"));
+            card.appendChild(topo);
+
+            card.appendChild(criarElemento(
+                "p", `Senioridade: ${talento.senioridade || "Não informada"}`, "cargo"
+            ));
+            card.appendChild(criarElemento("p", "Competências técnicas", "secao-titulo"));
+            const competencias = criarElemento("div", undefined, "competencias");
+            Object.entries(talento.niveis || {}).forEach(([skill, nivel]) => {
+                competencias.appendChild(criarElemento(
+                    "span", `${skill} · ${formatarNivel(nivel)}`, "competencia"
+                ));
+            });
+            card.appendChild(competencias);
+
+            const disponibilidade = talento.disponibilidade_informada;
+            const textoDisponibilidade = disponibilidade === null || disponibilidade === undefined
+                ? "Disponibilidade não informada"
+                : `Disponibilidade informada: ${disponibilidade}%`;
+            card.appendChild(criarElemento(
+                "div", textoDisponibilidade, "talento-disponibilidade"
+            ));
+            card.appendChild(criarElemento(
+                "p",
+                "Disponibilidade declarada no cadastro. Confirme os meses solicitados com o talento antes de alocar.",
+                "aviso"
+            ));
+            return card;
+        }
+
+        let sugestaoPendenteIA = null;
+        let consultaOriginalIA = null;
+        let requisicaoIA = 0;
+
+        function descartarSugestaoIA() {
+            requisicaoIA++;
+            sugestaoPendenteIA = null;
+            consultaOriginalIA = null;
+            document.getElementById("sugestao-ia").hidden = true;
+            document.getElementById("melhorar-ia").disabled = false;
+        }
+
+        function aceitarSugestaoIA() {
+            const campo = document.getElementById("consulta");
+            if (!sugestaoPendenteIA || campo.value.trim() !== consultaOriginalIA) {
+                descartarSugestaoIA();
+                document.getElementById("mensagem").textContent =
+                    "O texto foi alterado. Solicite uma nova sugestão, se desejar.";
+                return;
+            }
+            campo.value = sugestaoPendenteIA;
+            descartarSugestaoIA();
+            document.getElementById("mensagem").textContent =
+                "Sugestão aplicada. Revise os requisitos e clique em Buscar profissionais.";
+            campo.focus();
+        }
+
+        document.getElementById("consulta").addEventListener("input", () => {
+            if (sugestaoPendenteIA !== null) descartarSugestaoIA();
+        });
+
+        async function melhorarPesquisaIA() {
             const texto = document.getElementById("consulta").value.trim();
+            const mensagem = document.getElementById("mensagem");
+            const botao = document.getElementById("melhorar-ia");
+            if (!texto) {
+                mensagem.textContent = "Digite uma pesquisa antes de solicitar a melhoria com IA.";
+                return;
+            }
+            if (texto.length > 1500) {
+                mensagem.textContent = "A pesquisa deve ter no máximo 1.500 caracteres.";
+                return;
+            }
+            descartarSugestaoIA();
+            const idRequisicao = ++requisicaoIA;
+            botao.disabled = true;
+            mensagem.textContent = "A IA local está revisando sua pesquisa. Isso pode levar alguns segundos...";
+            try {
+                const resposta = await fetch("/melhorar-consulta", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    credentials: "same-origin",
+                    body: JSON.stringify({ texto })
+                });
+                if (idRequisicao !== requisicaoIA) return;
+                if (resposta.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                const dados = await resposta.json();
+                if (!resposta.ok) throw new Error(dados.detail || "Não foi possível consultar a IA local.");
+                if (document.getElementById("consulta").value.trim() !== texto) {
+                    mensagem.textContent = "A pesquisa mudou durante a revisão. Solicite novamente, se desejar.";
+                    return;
+                }
+                sugestaoPendenteIA = dados.sugestao;
+                consultaOriginalIA = texto;
+                document.getElementById("sugestao-ia-texto").textContent = dados.sugestao;
+                document.getElementById("sugestao-ia").hidden = false;
+                mensagem.textContent = "Revise a sugestão antes de aplicá-la.";
+            } catch (erro) {
+                if (idRequisicao === requisicaoIA) {
+                    mensagem.textContent = erro.message || "IA indisponível. A busca normal continua funcionando.";
+                }
+            } finally {
+                if (idRequisicao === requisicaoIA) botao.disabled = false;
+            }
+        }
+
+        function mostrarCriteriosAplicados(filtros, destino) {
+            if (!filtros || !Array.isArray(filtros.periodo) || !filtros.periodo.length) return;
+            const periodos = filtros.periodo;
+            const formatar = ([ano, mes]) =>
+                `${String(mes).padStart(2, "0")}/${ano}`;
+            const primeiro = formatar(periodos[0]);
+            const ultimo = formatar(periodos[periodos.length - 1]);
+            const descricao = primeiro === ultimo ? primeiro : `${primeiro} a ${ultimo}`;
+            const percentual = filtros.percentual == null
+                ? "Não informado (sem mínimo)"
+                : `${filtros.percentual}% em cada mês`;
+            const bloco = criarElemento("section", undefined, "criterios-pesquisa");
+            bloco.appendChild(criarElemento("h3", "Critérios aplicados à pesquisa", "criterios-titulo"));
+            const linhas = criarElemento("div", undefined, "criterios-linhas");
+            const itens = [
+                ["Período analisado:", descricao],
+                ["Disponibilidade mínima:", percentual],
+                ["Duração:", `${periodos.length} ${periodos.length === 1 ? "mês" : "meses"}`]
+            ];
+            itens.forEach(([rotulo, valor]) => {
+                const linha = criarElemento("div", undefined, "criterio");
+                linha.appendChild(criarElemento("strong", rotulo + " "));
+                linha.appendChild(document.createTextNode(valor));
+                linhas.appendChild(linha);
+            });
+            bloco.appendChild(linhas);
+            const origem = filtros.origem_periodo;
+            let nota = "";
+            if (origem === "padrao") nota = "Período padrão de 3 meses: a pesquisa não informou uma data ou duração.";
+            else if (origem === "inicio" && periodos.length === 3 && !filtros.duracao_informada) nota = "Data de início informada; como não foi indicada uma duração, foram considerados 3 meses.";
+            else if (origem === "mes_especifico") nota = "Pesquisa pontual: apenas o mês solicitado foi considerado.";
+            if (nota) bloco.appendChild(criarElemento("p", nota, "criterios-nota"));
+            destino.appendChild(bloco);
+        }
+
+        async function buscarProfissionais() {
+            const texto = document
+                .getElementById("consulta")
+                .value
+                .trim();
+
             const botao = document.getElementById("buscar");
             const mensagem = document.getElementById("mensagem");
             const resultados = document.getElementById("resultados");
 
             if (!texto) {
-                mensagem.textContent = "Digite uma solicitação.";
+                mensagem.textContent =
+                    "Digite uma solicitação para continuar.";
                 return;
             }
 
@@ -187,8 +1386,14 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
+                    credentials: "same-origin",
                     body: JSON.stringify({ texto })
                 });
+
+                if (resposta.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
 
                 const dados = await resposta.json();
 
@@ -200,90 +1405,101 @@
                     );
                 }
 
-                mensagem.textContent =
-                    `${dados.total_encontrado} profissional(is) elegível(is).`;
+                mostrarCriteriosAplicados(dados.filtros, resultados);
 
-                if (!dados.colaboradores.length) {
+                if (dados.origem_resultado === "talentos") {
+                    const talentos = dados.talentos || [];
+                    const totalTalentos = dados.total_encontrado || 0;
+                    mensagem.textContent = "";
+
+                    const cabecalhoTalentos = criarElemento(
+                        "div", undefined, "resultados-cabecalho"
+                    );
+                    cabecalhoTalentos.appendChild(criarElemento(
+                        "h2", "Banco de Talentos — alternativas externas"
+                    ));
+                    cabecalhoTalentos.appendChild(criarElemento(
+                        "span",
+                        `${talentos.length} exibido(s) de ${totalTalentos} talento(s) compatível(is)`,
+                        "resultado-contagem"
+                    ));
+                    resultados.appendChild(cabecalhoTalentos);
+                    resultados.appendChild(criarElemento(
+                        "p",
+                        "Nenhum colaborador interno atendeu a todos os requisitos. " +
+                        "Os talentos abaixo atendem aos filtros técnicos e à disponibilidade " +
+                        "declarada, mas é necessário confirmar sua disponibilidade no período solicitado.",
+                        "talento-nota"
+                    ));
+
+                    if (!talentos.length) {
+                        resultados.appendChild(criarElemento(
+                            "div",
+                            "Nenhum colaborador interno ou talento externo atende aos critérios informados.",
+                            "sem-resultados"
+                        ));
+                        return;
+                    }
+
+                    talentos.forEach((talento, indice) => {
+                        resultados.appendChild(criarCardTalento(talento, indice));
+                    });
+                    return;
+                }
+
+                const total = dados.total_encontrado || 0;
+                const colaboradores = dados.colaboradores || [];
+
+                mensagem.textContent = "";
+
+                const cabecalho = criarElemento(
+                    "div",
+                    undefined,
+                    "resultados-cabecalho"
+                );
+
+                cabecalho.appendChild(
+                    criarElemento(
+                        "h2",
+                        "Profissionais encontrados"
+                    )
+                );
+
+                const quantidadeExibida = colaboradores.length;
+
+                cabecalho.appendChild(
+                    criarElemento(
+                        "span",
+                        `${quantidadeExibida} exibido(s) de ${total} elegível(is)`,
+                        "resultado-contagem"
+                    )
+                );
+
+                resultados.appendChild(cabecalho);
+
+                if (!colaboradores.length) {
                     resultados.appendChild(
-                        criarElemento("p", "Nenhum profissional encontrado.")
+                        criarElemento(
+                            "div",
+                            "Nenhum profissional atende aos requisitos informados.",
+                            "sem-resultados"
+                        )
                     );
                     return;
                 }
 
-                dados.colaboradores.forEach((colaborador, indice) => {
-                    const card = criarElemento("article", undefined, "colaborador");
-
-                    card.appendChild(
-                        criarElemento("h3", `${indice + 1}º - ${colaborador.nome}`)
-                    );
-
-                    card.appendChild(
-                        criarElemento(
-                            "p",
-                            `${colaborador.cargo} | ${colaborador.senioridade}`,
-                            "info"
+                colaboradores.forEach((colaborador, indice) => {
+                    resultados.appendChild(
+                        criarCardColaborador(
+                            colaborador,
+                            indice
                         )
                     );
-
-                    const competencias = Object.entries(colaborador.niveis)
-                        .map(([skill, nivel]) => {
-                            const niveis = {
-                                1: "Básico",
-                                2: "Intermediário",
-                                3: "Avançado"
-                            };
-
-                            return `${skill}: ${niveis[nivel] || "Não informado"}`;
-                        })
-                        .join(" | ");
-
-                    card.appendChild(
-                        criarElemento("p", competencias, "info")
-                    );
-
-                    card.appendChild(
-                        criarElemento(
-                            "p",
-                            `Experiência registrada: ${colaborador.experiencia_meses} meses`,
-                            "info"
-                        )
-                    );
-
-                    const meses = criarElemento("div", undefined, "meses");
-
-                    colaborador.disponibilidade.forEach((mes) => {
-                        const caixa = criarElemento("div", undefined, "mes");
-
-                        caixa.appendChild(
-                            criarElemento("span", `${mes.mes}/${mes.ano}`)
-                        );
-
-                        caixa.appendChild(
-                            criarElemento(
-                                "strong",
-                                `${mes.disponibilidade}% livre`
-                            )
-                        );
-
-                        if (!mes.possui_planejamento) {
-                            caixa.appendChild(
-                                criarElemento(
-                                    "span",
-                                    "Sem planejamento registrado",
-                                    "aviso"
-                                )
-                            );
-                        }
-
-                        meses.appendChild(caixa);
-                    });
-
-                    card.appendChild(meses);
-                    resultados.appendChild(card);
                 });
 
             } catch (erro) {
-                mensagem.textContent = erro.message;
+                mensagem.textContent =
+                    erro.message || "Não foi possível executar a busca.";
             } finally {
                 botao.disabled = false;
             }

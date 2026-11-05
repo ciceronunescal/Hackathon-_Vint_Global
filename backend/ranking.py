@@ -1,4 +1,3 @@
-
 import unicodedata
 from collections import defaultdict
 
@@ -37,9 +36,7 @@ def consultar_niveis(colaboradores, skills):
         return {}
 
     ids = [c["id"] for c in colaboradores]
-    skills_normalizadas = {
-        normalizar(skill) for skill in skills
-    }
+    skills_normalizadas = {normalizar(skill) for skill in skills}
 
     query = """
         SELECT
@@ -73,13 +70,8 @@ def consultar_niveis(colaboradores, skills):
                     normalizar(registro["nivel"]), 0
                 )
 
-                anterior = niveis[id_colaborador].get(
-                    nome_skill, 0
-                )
-
-                niveis[id_colaborador][nome_skill] = max(
-                    anterior, nivel
-                )
+                anterior = niveis[id_colaborador].get(nome_skill, 0)
+                niveis[id_colaborador][nome_skill] = max(anterior, nivel)
 
     return dict(niveis)
 
@@ -88,9 +80,7 @@ def classificar_colaboradores(
     skills, percentual, periodo,
     senioridade=None, cargo=None
 ):
-    candidatos = buscar_colaboradores(
-        skills, percentual, periodo
-    )
+    candidatos = buscar_colaboradores(skills, percentual, periodo)
 
     if senioridade:
         candidatos = [
@@ -99,14 +89,17 @@ def classificar_colaboradores(
             if normalizar(candidato["senioridade"])
             == normalizar(senioridade)
         ]
-    
+
     if cargo:
         candidatos = [
             candidato
             for candidato in candidatos
             if normalizar(candidato["cargo"])
             == normalizar(cargo)
-    ]
+        ]
+
+    if not candidatos:
+        return []
 
     niveis = consultar_niveis(candidatos, skills)
     resultados = []
@@ -120,10 +113,18 @@ def classificar_colaboradores(
             for skill in skills
         ]
 
-        disponibilidade = [
+        meses = candidato["disponibilidade"]
+        disponibilidades = [
             float(mes["disponibilidade"])
-            for mes in candidato["disponibilidade"]
+            for mes in meses
         ]
+
+        # Conta somente os meses que possuem planejamento registrado.
+        # Isso nao altera a disponibilidade calculada nem exclui candidatos.
+        meses_com_planejamento = sum(
+            1 for mes in meses
+            if mes.get("possui_planejamento") is True
+        )
 
         experiencia = calcular_experiencia(identificador)
 
@@ -136,24 +137,39 @@ def classificar_colaboradores(
             "senioridade_pontos": SENIORIDADES.get(
                 normalizar(candidato["senioridade"]), 0
             ),
-            "competencia_minima": min(pontuacoes),
+            "competencia_minima": min(pontuacoes, default=0),
             "competencia_total": sum(pontuacoes),
             "experiencia_meses": experiencia,
-            "disponibilidade_minima": min(disponibilidade),
+            "disponibilidade_minima": min(disponibilidades, default=0),
             "disponibilidade_media": (
-                sum(disponibilidade) / len(disponibilidade)
+                sum(disponibilidades) / len(disponibilidades)
+                if disponibilidades else 0
             ),
+            "meses_com_planejamento": meses_com_planejamento,
+            "meses_sem_planejamento": len(meses) - meses_com_planejamento,
         }
 
         resultados.append(resultado)
 
+    # Ordem de classificacao:
+    # 1. Melhor nivel minimo entre as competencias exigidas.
+    # 2. Maior soma dos niveis das competencias exigidas.
+    # 3. Maior disponibilidade no mes mais restritivo.
+    # 4. Mais meses com planejamento registrado.
+    # 5. Maior experiencia em projetos.
+    # 6. Maior senioridade (desempate, se nao houver filtro).
+    # 7. Maior disponibilidade media.
+    # 8. Nome, para uma ordem estavel.
+    #
+    # Cargo e senioridade informados continuam sendo filtros obrigatorios.
     resultados.sort(
         key=lambda c: (
-            -c["senioridade_pontos"],
             -c["competencia_minima"],
             -c["competencia_total"],
-            -c["experiencia_meses"],
             -c["disponibilidade_minima"],
+            -c["meses_com_planejamento"],
+            -c["experiencia_meses"],
+            -c["senioridade_pontos"],
             -c["disponibilidade_media"],
             c["nome"],
         )
@@ -177,41 +193,41 @@ def main():
     print("=" * 60)
 
     print(f"Skills: {', '.join(skills)}")
-    print(f"Disponibilidade mínima: {percentual}%")
+    print(f"Disponibilidade minima: {percentual}%")
 
-    resultados = classificar_colaboradores(
-        skills, percentual, periodo
-    )
+    resultados = classificar_colaboradores(skills, percentual, periodo)
 
     if not resultados:
         print("\nNenhum colaborador atende aos requisitos.")
         return
 
     for posicao, colaborador in enumerate(resultados, 1):
-        meses = colaborador["experiencia_meses"]
+        experiencia = colaborador["experiencia_meses"]
 
         print(f"\n{'-' * 60}")
         print(f"{posicao}º - {colaborador['nome']}")
         print(f"ID: {colaborador['id']}")
         print(f"Senioridade: {colaborador['senioridade']}")
         print(
-            f"Experiência: {meses // 12} ano(s) "
-            f"e {meses % 12} mês(es)"
+            f"Experiencia: {experiencia // 12} ano(s) "
+            f"e {experiencia % 12} mes(es)"
+        )
+        print(
+            "Meses com planejamento registrado: "
+            f"{colaborador['meses_com_planejamento']}"
         )
 
-        print("Competências:")
+        print("Competencias:")
 
         for skill, nivel in colaborador["niveis"].items():
             descricao = {
-                1: "Básico",
-                2: "Intermediário",
-                3: "Avançado",
-            }.get(nivel, "Não identificado")
-
+                1: "Basico",
+                2: "Intermediario",
+                3: "Avancado",
+            }.get(nivel, "Nao identificado")
             print(f"  {skill}: {descricao}")
 
         print("Disponibilidade:")
-
         for mes in colaborador["disponibilidade"]:
             print(
                 f"  {mes['mes']}/{mes['ano']}: "

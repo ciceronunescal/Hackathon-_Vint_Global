@@ -36,3 +36,6 @@ pgadmin/servers.json
 
 # Consultas SQL utilizadas nos testes
 consultas.sql
+
+# Exportações locais de colaboradores e alocações
+exportacoes/

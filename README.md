@@ -1,270 +1,219 @@
-# Hackathon Vint_Global — Banco de Dados
+# InHire — Busca Inteligente de Profissionais
 
-Você sobe tudo com **um único comando** e tem o banco disponível em segundos — sem instalar nada além do Docker.
+**Projeto para o Hackathon Vint Global / INBEC 2026**
 
-Ao final você terá:
-- Um banco PostgreSQL 18 rodando localmente com a tabela 11 tabelas, schema "InHire".
-- O pgAdmin 4 acessível pelo navegador, já conectado ao banco
-- Dados prontos para uso na aplicação que você vai construir
+O InHire ajuda gestores a encontrar profissionais de tecnologia compatíveis com uma necessidade de projeto, considerando **competências, senioridade e disponibilidade percentual em cada mês**. A solução prioriza colaboradores internos e, se não houver nenhum elegível, procura automaticamente alternativas no Banco de Talentos.
 
----
+## 1. O desafio
 
-## 1. Pré-requisitos
+No cenário proposto, José, gerente de projetos, precisa encontrar **1 desenvolvedor sênior com Node.js e AWS e pelo menos 50% de disponibilidade mensal nos próximos três meses**. A verificação manual das competências e da capacidade disponível em diversos projetos, além da consulta separada a candidatos externos, torna a decisão lenta.
 
-| Sistema | O que instalar |
-|---------|---------------|
-| **Windows** | [Docker Desktop para Windows](https://docs.docker.com/desktop/install/windows-install/) |
-| **macOS** | [Docker Desktop para Mac](https://docs.docker.com/desktop/install/mac-install/) |
-| **Linux** | [Docker Engine + Compose plugin](https://docs.docker.com/engine/install/) |
+O InHire reúne essas verificações em uma pesquisa em linguagem natural, permitindo inspecionar os candidatos e os critérios aplicados.
 
-> **Windows/Mac:** O Docker Desktop precisa estar **aberto** antes de rodar qualquer comando.  
-> Você verá o ícone da baleia na bandeja do sistema quando estiver ativo.
+## 2. Funcionalidades
 
-**Conferindo se está tudo certo** — abra o terminal e rode:
+- Pesquisa em português por cargo, competências técnicas, senioridade, quantidade de profissionais, percentual mínimo de disponibilidade e período.
+- Interpretação de expressões temporais: mês específico, início em determinada data, duração explícita e intervalos; quando não há referência temporal, utiliza horizonte padrão de três meses; um mês específico sem duração explícita é tratado como consulta pontual.
+- Cálculo e filtragem por **disponibilidade mínima em cada mês** do período, sem substituir essa regra por média mensal.
+- Classificação de profissionais internos conforme os critérios interpretados, habilidades e histórico de experiência.
+- Indicação dos meses com planejamento registrado e alertas sobre demandas vigentes sem planejamento ou com alocação planejada de 0%.
+- Fallback automático para **Banco de Talentos** somente quando não há colaborador interno elegível. A disponibilidade externa é **declarada** e precisa de confirmação para o período.
+- Melhoria opcional do texto da pesquisa com um modelo local via Ollama: a sugestão depende de aceite do usuário; **a IA não define os resultados da busca**.
+- Interface web responsiva e acesso protegido por sessão e senha.
 
-```bash
-docker --version
-docker compose version
+**Limite do escopo:** a ferramenta recomenda profissionais elegíveis; não efetua uma alocação contratual ou atualização automática no SGD. O banco PostgreSQL utilizado é a base disponibilizada para o desafio, não uma integração em tempo real com o SGD.
+
+## 3. Arquitetura e tecnologias
+
+| Camada | Tecnologia / responsabilidade |
+| --- | --- |
+| Interface | HTML, CSS e JavaScript (`frontend/index.html`) |
+| API e autenticação | Python, FastAPI, Uvicorn, sessões assinadas (`backend/api.py`) |
+| Interpretação | Regras determinísticas (`backend/interpretador.py`) |
+| Busca e ranking | Módulos Python (`backend/ranking.py`, `backend/busca_talentos.py` e auxiliares) |
+| Persistência | PostgreSQL 18, schema `"InHire"`, conexão via `psycopg` |
+| Execução do banco | Docker Compose; pgAdmin opcional |
+| IA de apoio (opcional) | Ollama local, testado com `qwen3:1.7b` |
+
+O código da API utiliza `backend/database.py` para conectar ao PostgreSQL. Se `DATABASE_URL` estiver preenchida, ela tem precedência; caso contrário, usa `localhost:5432`, banco e usuário `hackathon`, e a senha de `POSTGRES_PASSWORD`.
+
+## 4. Pré-requisitos
+
+- Python 3.12 (ambiente utilizado na validação) e dependências de `requirements.txt`.
+- Docker e Docker Compose para iniciar o PostgreSQL 18, ou uma instância PostgreSQL 18 acessível.
+- **Arquivo de banco fornecido separadamente** pelo responsável pela entrega.
+- Opcional: Ollama e o modelo `qwen3:1.7b` para o botão de melhoria de texto.
+
+## 5. Configuração inicial
+
+### 5.1. Obter o projeto e criar o ambiente Python
+
+No terminal PowerShell, dentro da pasta do repositório:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-Você deve ver algo como `Docker version 27.x.x` e `Docker Compose version v2.x.x`.  
-Se aparecer erro, verifique se o Docker Desktop está aberto.
+No Linux/macOS, ative o ambiente com `source .venv/bin/activate`.
 
----
+### 5.2. Variáveis de ambiente
 
-## 2. Subindo o ambiente
+Copie `.env.example` para `.env` e substitua os valores de exemplo por **valores próprios do avaliador**:
 
-### Passo 1 — Baixe e descompacte este pacote
-
-Extraia a pasta `hackathon-vintglobal` em algum lugar no seu computador.
-
-Dentro da pasta deve existir o arquivo **`.env`**, com a senha do banco
-igual ao **token** que você recebeu no WhatsApp:
-
-```
-POSTGRES_PASSWORD=seu_token_aqui
+```powershell
+Copy-Item .env.example .env
 ```
 
-Não apague nem altere esse arquivo antes de subir o ambiente.
-Sem ele, o Postgres não sobe com a senha correta.
+Variáveis obrigatórias para a aplicação: `INHIRE_ACCESS_PASSWORD` e `INHIRE_SESSION_SECRET` (mínimo de 32 caracteres). Para o banco, configure `POSTGRES_PASSWORD` e, se necessário, `DATABASE_URL`.
 
-### Passo 2 — Abra o terminal na pasta do pacote
+#### Acesso dos avaliadores: como definir a senha do InHire
 
-**Windows (PowerShell ou Prompt):**
+**A banca não precisa receber nem conhecer a senha utilizada pelo desenvolvedor.** O próprio avaliador define a senha de login no seu arquivo `.env` local, antes de iniciar a API. Por exemplo:
+
+```dotenv
+# Senha do PostgreSQL: defina a mesma senha para o Docker Compose e o backend.
+POSTGRES_PASSWORD=substitua_por_uma_senha_local_do_banco
+
+# Se o PostgreSQL estiver em localhost:5432, esta variável pode ficar vazia.
+DATABASE_URL=
+
+# Senha que o avaliador utilizará na TELA DE LOGIN do InHire.
+INHIRE_ACCESS_PASSWORD=escolha_uma_senha_para_acessar_o_inhire
+
+# Chave interna para assinar sessões; NÃO é a senha de login.
+INHIRE_SESSION_SECRET=substitua_por_uma_chave_aleatoria_longa_e_unica
 ```
-cd caminho\para\hackathon-vintglobal
+
+Para gerar uma chave de sessão aleatória no PowerShell, use:
+
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-**Mac/Linux:**
-```bash
-cd caminho/para/hackathon-vintglobal
-```
+Copie o resultado para `INHIRE_SESSION_SECRET` no `.env`. Após iniciar o servidor, acesse `http://127.0.0.1:8000/login` e entre com **o valor que você mesmo definiu em `INHIRE_ACCESS_PASSWORD`**. A aplicação não utiliza cadastro de usuário nem exige credenciais do autor do projeto. **A senha do PostgreSQL é diferente da senha de acesso à interface**, mesmo que ambas estejam no mesmo `.env`.
 
-### Passo 3 — Suba os serviços
+**Segurança:** nunca publique `.env` no GitHub nem reutilize o token pessoal disponibilizado no evento. O arquivo `.env.example` deve conter apenas valores fictícios. Não envie a chave de sessão ou a senha de acesso real à banca; os avaliadores as criam no próprio ambiente.
 
-```bash
+### 5.3. Restaurar os dados do desafio
+
+O Compose monta `./db` no diretório de inicialização do PostgreSQL. **O diretório `db/` e os dados reais não acompanham o repositório**: serão fornecidos separadamente. Coloque o script SQL de inicialização recebido dentro de `db/` **antes da primeira criação do volume**.
+
+Em seguida:
+
+```powershell
 docker compose up -d
-```
-
-O que acontece na tela:
-```
-[+] Running 3/3
- ✔ Network hackathon_default      Created
- ✔ Container hackathon-vintglobal   Started
- ✔ Container hackathon-pgadmin    Started
-```
-
-Na primeira execução o Docker vai baixar as imagens (~200 MB). Aguarde.
-
-### Passo 4 — Confirme que está saudável
-
-```bash
 docker compose ps
 ```
 
-Quando estiver pronto, você verá `healthy` na coluna STATUS para o postgres:
+Confirme que `hackathon-postgres` está `healthy`. Um script `.sql` de inicialização será executado apenas quando o diretório de dados estiver vazio. **Não use `docker compose down -v` em um ambiente com dados que precise preservar:** esse comando remove os volumes e apaga o banco local.
 
-```
-NAME                   IMAGE                STATUS
-hackathon-vintglobal     postgres:18-alpine   Up X seconds (healthy)
-hackathon-pgadmin      dpage/pgadmin4       Up X seconds
-```
+Se a base for entregue em formato de **backup customizado** (`.backup`/`.dump`) e não SQL de inicialização, a restauração exige `pg_restore` em vez de simplesmente copiar o arquivo para `db/`. Nesse caso, utilize as instruções que acompanham o backup.
 
-> O banco leva de 10 a 30 segundos para ficar `healthy` na primeira subida  
-> (ele precisa carregar o dump). Aguarde antes de tentar conectar.
+### 5.4. Iniciar a aplicação
 
----
+A partir da pasta `backend`:
 
-## 3. Credenciais
-
-| Campo | Valor |
-|-------|-------|
-| Host | `localhost` |
-| Porta | `5432` |
-| Banco | `hackathon` |
-| Usuário | `hackathon` |
-| Senha | valor de `POSTGRES_PASSWORD` no arquivo `.env` (seu token) |
-
-A senha do Postgres **não** é a palavra `hackathon`.
-Ela é o token que chegou no WhatsApp e foi gravado no `.env`.
-
-**String de conexão** (troque `SEU_TOKEN` pelo valor do `.env`):
-```
-postgresql://hackathon:SEU_TOKEN@localhost:5432/hackathon
+```powershell
+cd backend
+python -m uvicorn api:app --host 127.0.0.1 --port 8000
 ```
 
-> Credenciais só para o ambiente local do desafio.
-> Não use em produção.
+A aplicação atende em `http://127.0.0.1:8000/login`; após a autenticação, abre `/app`.
 
-**Se a porta 5432 já estiver em uso**, abra o `docker-compose.yaml` e troque o número da **esquerda** na linha:
-```yaml
-ports:
-  - "5433:5432"   # <-- coloque qualquer porta livre no seu computador
-```
-Depois suba novamente com `docker compose up -d` e use `localhost:5433` nas conexões.
+**Sessão e HTTPS:** o projeto usa cookie de sessão com a opção `https_only=True`. No computador de desenvolvimento, o login foi testado com sucesso em `http://127.0.0.1:8000/login`; isso não garante que funcionará da mesma maneira em todos os navegadores/endereços HTTP. Para acesso remoto, utilize HTTPS. Se o navegador do avaliador não persistir a sessão no acesso local, verifique a política de cookies e a configuração da sessão antes de alterar qualquer parâmetro de segurança; nunca exponha uma versão com cookies inseguros à internet.
 
----
+### 5.5. pgAdmin (opcional)
 
-## 4. Acessando o banco
+O Compose de distribuição expõe o pgAdmin em `http://localhost:5050` e **não deve depender** de um arquivo local `pgadmin/servers.json`. Antes de executar, confira que o `docker-compose.yaml` usado é a versão preparada para distribuição; o arquivo original do evento fazia essa montagem. Se necessário, cadastre o servidor manualmente no pgAdmin com host `postgres` (dentro da rede Docker), porta `5432`, banco `hackathon`, usuário `hackathon` e a senha definida em `POSTGRES_PASSWORD`.
 
-### pgAdmin (recomendado para iniciantes)
+## 6. Ollama (opcional)
 
-1. Abra o navegador e acesse: **http://localhost:5050**
-2. Login do pgAdmin (painel): e-mail `admin@hackathon.com`, senha `hackathon`
-3. O servidor **Hackathon** já aparece na árvore à esquerda
-4. Clique em `Hackathon` → informe a senha do **Postgres**
-   (o valor de `POSTGRES_PASSWORD` no `.env`, ou seja, o seu token)
-5. Expanda `Databases → hackathon → Schemas → InHire → Tables`
-6. Clique com o botão direito em uma `tabela → View/Edit Data → All Rows`
+O mecanismo principal de busca **não depende de IA generativa**. Para habilitar a sugestão de reformulação de texto, instale o Ollama e baixe o modelo testado:
 
-Para escrever queries SQL: menu `Tools → Query Tool`.
-
-### DBeaver (alternativa gratuita)
-
-1. Abra o DBeaver e clique em **Nova Conexão** (ícone de tomada)
-2. Selecione **PostgreSQL** → clique em `Próximo`
-3. Preencha os campos:
-   - **Host:** `localhost`
-   - **Port:** `5432`
-   - **Database:** `hackathon`
-   - **Username:** `hackathon`
-   - **Password:** o valor de `POSTGRES_PASSWORD` no `.env` (seu token)
-4. Clique em **Testar Conexão** → se aparecer `Connected`, clique em `Finalizar`
-
-### psql (linha de comando)
-
-```bash
-docker compose exec postgres psql -U hackathon -d hackathon
+```powershell
+ollama pull qwen3:1.7b
 ```
 
-Você cai direto no prompt do banco. Para sair: `\q`
+Mantenha o serviço local do Ollama ativo. Se estiver indisponível ou lento, a pesquisa convencional permanece utilizável. O desempenho depende do hardware.
 
----
+## 7. Roteiro de validação funcional
 
-## 5. Os dados
+A demonstração deve utilizar dados presentes no banco restaurado. Os resultados específicos **dependem dos registros e dos planejamentos efetivamente disponíveis**.
 
-Os dados estão no schema **`"InHire"`** dentro do banco `hackathon`. O schema contém **11 tabelas** de um sistema de gestão de alocações de profissionais.
+| Cenário | Entrada de exemplo | Resultado a verificar |
+| --- | --- | --- |
+| Caso oficial | `Quero 1 desenvolvedor sênior com Node.js e AWS e 50% de disponibilidade pelos próximos 3 meses` | Aplicação de senioridade, duas skills e 50% em **todos** os meses |
+| Mês específico | `Preciso de um dev Python em janeiro de 2027` | Período somente de janeiro/2027 |
+| Início sem duração | `Preciso de um dev Python a partir de janeiro de 2027` | Janeiro, fevereiro e março/2027 |
+| Duração explícita | `Preciso de um dev Python a partir de janeiro de 2027 por 6 meses` | Janeiro a junho/2027 |
+| Busca externa | Consulta sem colaborador interno elegível, mas com talento externo compatível | Consulta automática ao Banco de Talentos, com aviso de disponibilidade declarada |
+| Melhoria de texto | `preciso de um dev com pythom e djago` | Sugestão corrigida pela IA, **sem busca automática e sem alterar os critérios sem aceite** |
 
-| Tabela | O que contém |
-|--------|-------------|
-| `dominios` | Listas de valores do sistema (cargos, senioridades, modalidades, vínculos, setores etc.) |
-| `colaboradores` | Profissionais internos cadastrados |
-| `colaborador_skills` | Skills de cada colaborador e seu nível de conhecimento |
-| `skills` | Catálogo de skills organizado por área de tecnologia |
-| `contratos` | Contratos comerciais com clientes |
-| `demandas` | Projetos/demandas vinculados a contratos |
-| `demanda_skills` | Skills requeridas por cada demanda |
-| `alocacoes` | Vínculo entre colaborador e demanda |
-| `planejamentos` | Percentual de alocação mensal de cada colaborador em cada demanda |
-| `talentos` | Candidatos externos com disponibilidade informada |
-| `talento_skills` | Skills dos talentos externos |
+A interface distingue colaboradores internos e candidatos externos; disponibilidade externa exige confirmação humana. Os testes manuais do ambiente de desenvolvimento validaram login, busca interna, fallback para talentos e melhoria opcional via Ollama. Tempos de resposta do cruzamento com o banco real não foram aferidos de forma controlada.
 
-> O schema também conta com **funções auxiliares** para cálculo de disponibilidade e ranking por skills — explore com `\df "InHire".*` no psql.
+## 8. Testes automatizados e evidências
 
+Foram executados **60 cenários automatizados**, todos aprovados, em Windows com Python 3.12. A última execução registrada terminou em **1,09 s**, com **1 aviso de depreciação** relacionado ao `starlette.testclient` / `httpx` e **0 falhas**. Os testes usam dados simulados e mocks para não modificar o PostgreSQL; por isso, o tempo de 1,09 s **não representa a latência real da busca no banco** e a aprovação dos testes **não equivale a cobertura de código de 100%**.
 
-## 6. Comandos úteis
+Para instalar as dependências de teste e executar a suíte na raiz do projeto:
 
-```bash
-# Ver status dos containers
-docker compose ps
-
-# Ver logs em tempo real
-docker compose logs -f
-
-# Parar os containers (dados mantidos)
-docker compose stop
-
-# Subir novamente após parar
-docker compose start
-
-# Parar e APAGAR tudo (volumes incluídos — o banco volta do zero na próxima subida)
-docker compose down -v
+```powershell
+python -m pip install pytest httpx
+python -m pytest -v
 ```
 
----
+Documentação e evidências:
 
-## 7. Problemas comuns
+- [Histórias de usuário e critérios de aceite](docs/requisitos/HISTORIAS_DE_USUARIO.md)
+- [Plano de testes](docs/testes/PLANO_DE_TESTES.md)
+- [Relatório de testes](docs/testes/RELATORIO_DE_TESTES.md)
+- [Saída real do pytest](docs/testes/resultado_pytest.txt)
 
-### "Porta 5432 já está em uso"
+A suíte cobre interpretação de solicitações, períodos, disponibilidade, elegibilidade, ranking, autenticação da API, fallback para o Banco de Talentos e integração opcional com Ollama por meio de mocks. Os testes manuais complementam essa suíte com a aplicação e o banco reais.
 
-Outro serviço (provavelmente um Postgres local) está usando essa porta.  
-Solução: troque `"5432:5432"` por `"5433:5432"` no `docker-compose.yaml` e use `localhost:5433` nas conexões. O mesmo vale para `5050` → `5051` para o pgAdmin.
+## 9. Organização do projeto
 
-### "Cannot connect to the Docker daemon"
-
-O Docker Desktop não está aberto. Abra-o pela bandeja do sistema ou menu Iniciar e aguarde a baleia ficar estável.
-
-### "O dump não recarrega / a tabela está vazia"
-
-O dump só é carregado na **primeira subida** (quando o volume está vazio).  
-Para forçar uma recarga completa:
-
-```bash
-docker compose down -v   # apaga os volumes
-docker compose up -d     # sobe do zero e recarrega o dump
+```text
+hackathon-vintglobal/
+├── backend/
+│   ├── api.py                  # Rotas, autenticação e orquestração da busca
+│   ├── database.py             # Conexão com PostgreSQL
+│   ├── interpretador.py        # Interpretação de filtros e períodos
+│   ├── busca.py                # Elegibilidade mensal
+│   ├── disponibilidade.py      # Cálculo de disponibilidade
+│   ├── ranking.py              # Classificação dos colaboradores
+│   ├── busca_talentos.py       # Alternativas externas
+│   ├── contexto_alocacoes.py   # Alertas de vigência/planejamento
+│   └── melhoria_ia.py          # Sugestão opcional com Ollama
+├── frontend/
+│   └── index.html
+├── tests/
+│   ├── test_api.py
+│   ├── test_busca.py
+│   ├── test_busca_talentos.py
+│   ├── test_disponibilidade.py
+│   ├── test_interpretador.py
+│   └── test_ranking.py
+├── docs/
+│   ├── requisitos/HISTORIAS_DE_USUARIO.md
+│   └── testes/
+│       ├── PLANO_DE_TESTES.md
+│       ├── RELATORIO_DE_TESTES.md
+│       └── resultado_pytest.txt
+├── docker-compose.yaml
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
 
-### Meu back-end também está em container
+A pasta `db/` e os dados do desafio são entregues separadamente. Arquivos de exportação, logs, credenciais locais e scripts auxiliares que não são necessários à execução não integram a entrega. O arquivo `iniciar_inhire.bat`, se incluído, é uma conveniência para execução no Windows; o servidor também pode ser iniciado pelo comando Uvicorn informado acima.
 
-Se o seu back-end roda em outro container, coloque-o na mesma rede do compose:
+## 10. Escopo, segurança e responsabilidade de uso
 
-```yaml
-# No docker-compose.yaml da sua aplicação:
-services:
-  minha-api:
-    ...
-    networks:
-      - hackathon_default   # nome da rede criada por este compose
+O InHire **recomenda** profissionais com base nas informações disponibilizadas, mas não executa alocações ou contratações. A disponibilidade mensal calculada depende da qualidade e completude dos planejamentos cadastrados. Na ausência de planejamento, a interface sinaliza que a disponibilidade não foi confirmada; para candidatos externos, o percentual é informado pelo cadastro e requer validação humana para o período solicitado.
 
-networks:
-  hackathon_default:
-    external: true
-```
+O banco de dados utilizado no desafio será entregue separadamente e deve ser tratado conforme as regras da organização e as autorizações de compartilhamento. Não publique senhas, tokens, `.env`, informações pessoais desnecessárias nem exportações de colaboradores no repositório.
 
-Aí use `host: postgres` (não `localhost`) nas configurações do banco.
-
----
-
-### "Permission denied" no Linux
-
-```bash
-sudo chmod 644 db/01-hackathon.sql
-```
-
-### Problema no WSL (Windows Subsystem for Linux)
-
-Se estiver usando WSL, garanta que o Docker Desktop está aberto no Windows e que a integração WSL está ativada em:  
-Docker Desktop → Settings → Resources → WSL Integration → habilite sua distro.
-
-Execute os comandos `docker compose` dentro do terminal WSL, na pasta do pacote.
-
----
-
-## Resumo rápido
-
-```bash
-docker compose up -d          # sobe tudo
-docker compose ps             # confere se está healthy
-# Acesse http://localhost:5050 no navegador (pgAdmin)
-docker compose down -v        # apaga tudo quando terminar
-```
+**Nota de reprodutibilidade:** a aplicação e os testes foram validados no ambiente de desenvolvimento. A instalação em outro computador deve ser conferida após restaurar a base fornecida e configurar as variáveis próprias do avaliador.
