@@ -374,6 +374,10 @@
 
         /* RESULTADOS */
 
+        #resultados {
+            scroll-margin-top: 22px;
+        }
+
         .resultados-cabecalho {
             display: flex;
             align-items: center;
@@ -1360,6 +1364,17 @@
             destino.appendChild(bloco);
         }
 
+        function rolarParaResultados() {
+            const resultados = document.getElementById("resultados");
+            const movimentoReduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            requestAnimationFrame(() => {
+                resultados.scrollIntoView({
+                    behavior: movimentoReduzido ? "auto" : "smooth",
+                    block: "start"
+                });
+            });
+        }
+
         async function buscarProfissionais() {
             const texto = document
                 .getElementById("consulta")
@@ -1379,6 +1394,7 @@
             botao.disabled = true;
             mensagem.textContent = "Buscando profissionais...";
             resultados.replaceChildren();
+            let pesquisaConcluida = false;
 
             try {
                 const resposta = await fetch("/buscar", {
@@ -1438,12 +1454,14 @@
                             "Nenhum colaborador interno ou talento externo atende aos critérios informados.",
                             "sem-resultados"
                         ));
+                        pesquisaConcluida = true;
                         return;
                     }
 
                     talentos.forEach((talento, indice) => {
                         resultados.appendChild(criarCardTalento(talento, indice));
                     });
+                    pesquisaConcluida = true;
                     return;
                 }
 
@@ -1485,6 +1503,7 @@
                             "sem-resultados"
                         )
                     );
+                    pesquisaConcluida = true;
                     return;
                 }
 
@@ -1496,12 +1515,16 @@
                         )
                     );
                 });
+                pesquisaConcluida = true;
 
             } catch (erro) {
                 mensagem.textContent =
                     erro.message || "Não foi possível executar a busca.";
             } finally {
                 botao.disabled = false;
+                if (pesquisaConcluida) {
+                    rolarParaResultados();
+                }
             }
         }
     </script>
